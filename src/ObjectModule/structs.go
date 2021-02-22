@@ -26,10 +26,10 @@ type RowTitle struct {
 
 // for each division, build such a matrix
 // For each sheet:
-//  RowTitle.LibId 		| RowTitle.GeneName		| DataColumnTitles[0] 	| DataColumnTitles[1] 	| ...	| StandardError	| SE/Mean
-//  RowTitles[0].LibId 	| RowTitles[0].GeneName | Data[0][0]			| Data[0][1]			| ...	| Se[0]			| SeMean[0]
-//  RowTitles[1].LibId 	| RowTitles[1].GeneName | 						| 						| ...	| 				| 			 <- CurrentDividingTarget
-//  RowTitles[2].LibId 	| RowTitles[2].GeneName | Data[2][0]			| Data[2][1]			| ...	| Se[2]			| SeMean[2]
+//  DataColumnTitles[0] 	| DataColumnTitles[1] 	| ...	| StandardError	| SE/Mean
+//  Data[0][0]				| Data[0][1]			| ...	| Se[0]			| SeMean[0]
+//  						| 						| ...	| 				| 			 <- CurrentDividingTarget
+//  Data[2][0]				| Data[2][1]			| ...	| Se[2]			| SeMean[2]
 //  ...
 type CalculationDataSheet struct {
 	CurrentDividingTarget int

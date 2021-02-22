@@ -48,7 +48,6 @@ func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 
 	geneTitleIdx := -1
 
-
 	fmt.Printf("processing first line as title: %s\n", titleLine)
 	if isTitleLine(titleLine) {
 		dataSheet.DataColumnTitles, geneTitleIdx, _, err = processTitleRow(titleLine)

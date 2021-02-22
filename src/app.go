@@ -9,7 +9,7 @@ func main() {
 	fmt.Println("hello world")
 
 	inputDataSheet := DataAccess.ReadFromCsv("data/testcase1/input.csv")
-	baseGeneIndex := calculate(inputDataSheet)
-	outputDataSheet := adjust(inputDataSheet, baseGeneIndex)
+	baseGeneIndex := Calculate(inputDataSheet)
+	outputDataSheet := Adjust(inputDataSheet, baseGeneIndex)
 	DataAccess.WriteToCsv(outputDataSheet)
 }
