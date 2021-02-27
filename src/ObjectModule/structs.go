@@ -35,6 +35,7 @@ type CalculationDataSheet struct {
 	CurrentDividingTarget int
 	Data                  [][]float64
 	Se                    []float64
+	Mean                  []float64
 	SeMean                []float64
 }
 
