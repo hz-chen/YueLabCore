@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const float64EqualityThreshold = 1e-7
+const float64EqualityThreshold = 1e-6 // this value can't be too high, as the excel calculation has different precision.
 
 func TestCalculate(t *testing.T) {
 	type args struct {
@@ -92,8 +92,8 @@ func TestAdjust(t *testing.T) {
 
 	t.Run(tt.name, func(t *testing.T) {
 		if got := Adjust(&tt.args.inputDataSheet, tt.args.baseGeneIndex); !almostEqualsOutputSheet(*got, tt.want) {
-			t.Errorf("Adjust() = %v, \n" +
-				"\t\t\twant %v", got, tt.want)
+			t.Errorf("Adjust() \t= %v, \n" +
+				"\t\t\t\t\t\twant\t= %v", *got, tt.want)
 		}
 	})
 }

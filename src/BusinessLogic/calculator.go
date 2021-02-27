@@ -27,8 +27,10 @@ func Adjust(inputDataSheet *ObjectModule.InputDataSheet, baseGeneIndex int) *Obj
 	baseNumber := targetRow[0]
 	var adjustingFactors []float64
 	for _, val := range targetRow {
-		adjustingFactors = append(adjustingFactors, val/baseNumber)
+		adjustingFactors = append(adjustingFactors, baseNumber / val)
 	}
+	fmt.Printf("adjusting factors: %v\n", adjustingFactors)
+
 	var adjustedDataMatrix [][]float64
 
 	for _, rowData := range inputDataSheet.Data {
