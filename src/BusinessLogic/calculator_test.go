@@ -4,6 +4,7 @@ import (
 	"YusLabCore/src/ObjectModule"
 	"fmt"
 	"math"
+	"reflect"
 	"testing"
 )
 
@@ -40,6 +41,61 @@ func TestCalculate(t *testing.T) {
 		}
 	})
 
+}
+
+func TestAdjust(t *testing.T) {
+	type args struct {
+		inputDataSheet ObjectModule.InputDataSheet
+		baseGeneIndex  int
+	}
+	tt := struct {
+		name string
+		args args
+		want ObjectModule.OutputDataSheet
+	}{
+		name: "based on only input data",
+		args: args{
+			inputDataSheet: ObjectModule.InputDataSheet{
+				DataColumnTitles: []string{"0um-16H", "1um-16H", "2um-16H", "4um-16H", "8um-16H"},
+				RowTitles: []ObjectModule.RowTitle{
+					{GeneName: "SPBC4F6.10"}, {GeneName: "SPBC4F6.11c"}, {GeneName: "SPBC18A7.01"},
+					{GeneName: "SPBC530.04"}, {GeneName: "SPBC557.05"}, {GeneName: "SPBC365.20c"},
+					{GeneName: "SPBC56F2.10c"}, {GeneName: "SPBC577.11"}, {GeneName: "SPBC577.14c"},
+					{GeneName: "SPBC106.20"},
+				},
+				Data: getInputMatrix(),
+			},
+			baseGeneIndex: 9,
+		},
+		want: ObjectModule.OutputDataSheet{
+			ColumnTitles: []string{"0um-16H", "1um-16H", "2um-16H", "4um-16H", "8um-16H"},
+			RowTitles: []ObjectModule.RowTitle{
+				{GeneName: "SPBC4F6.10"}, {GeneName: "SPBC4F6.11c"}, {GeneName: "SPBC18A7.01"},
+				{GeneName: "SPBC530.04"}, {GeneName: "SPBC557.05"}, {GeneName: "SPBC365.20c"},
+				{GeneName: "SPBC56F2.10c"}, {GeneName: "SPBC577.11"}, {GeneName: "SPBC577.14c"},
+				{GeneName: "SPBC106.20"},
+			},
+			Data: [][]float64{
+				{50, 45.98923284, 23.6123348, 32.82420749, 47.73087071},
+				{5, 3.606998654, 5.9030837, 3.86167147, 3.535620053},
+				{143, 143.3781965, 129.8678414, 129.3659942, 145.8443272},
+				{417, 429.2328398, 363.0396476, 480.778098, 380.9630607},
+				{110, 111.8169583, 144.6255507, 160.259366, 177.6649077},
+				{249, 407.5908479, 239.0748899, 274.1786744, 274.0105541},
+				{265, 229.0444145, 185.9471366, 310.8645533, 285.5013193},
+				{557, 500.4710633, 581.4537445, 546.426513, 477.3087071},
+				{1795, 1385.989233, 1407.885463, 1251.181556, 1310.831135},
+				{670, 670, 670, 670, 670},
+			},
+		},
+	}
+
+	t.Run(tt.name, func(t *testing.T) {
+		if got := Adjust(&tt.args.inputDataSheet, tt.args.baseGeneIndex); !almostEqualsOutputSheet(*got, tt.want) {
+			t.Errorf("Adjust() = %v, \n" +
+				"\t\t\twant %v", got, tt.want)
+		}
+	})
 }
 
 func TestCalculateSeAndMean(t *testing.T) {
@@ -113,7 +169,7 @@ func innerTestFillInSeArrayAndMeanArrayForMatrix(t *testing.T, matrix int) {
 	}
 
 	t.Run(tt.name, func(t *testing.T) {
-		if got := fillInSeArrayAndMeanArray(tt.args.sheet); !almostEqualsSheet(got, tt.want) {
+		if got := fillInSeArrayAndMeanArray(tt.args.sheet); !almostEqualsCalculationSheet(got, tt.want) {
 			t.Errorf("fillInSeArrayAndMeanArray(%v) =\t %v,"+
 				"\n\t\t\t\t\t\t\t\t\t\t\twant =\t %v", tt.args.sheet.CurrentDividingTarget, got, tt.want)
 		}
@@ -156,7 +212,7 @@ func innerTestFillInSeMeanArray(t *testing.T, target int) {
 	}
 
 	t.Run(tt.name, func(t *testing.T) {
-		if got := fillInSeMeanArray(tt.args.sheet); !almostEqualsSheet(got, tt.want) {
+		if got := fillInSeMeanArray(tt.args.sheet); !almostEqualsCalculationSheet(got, tt.want) {
 			t.Errorf("fillInSeMeanArray(%v) =\t %v,"+
 				"\n\t\t\t\t\t\t\t\t\twant =\t %v", tt.args.sheet.CurrentDividingTarget, got, tt.want)
 		}
@@ -191,7 +247,7 @@ func innerTestDivideAccordingToRow(t *testing.T, targetId int) {
 	t.Run(tt.name, func(t *testing.T) {
 		if got := divideAccordingToRow(tt.args.inputData, tt.args.targetIdx); !almostEqualsMatrix(got, tt.want) {
 			t.Errorf("divideAccordingToRow on target %v =\t %v,"+
-				"\n\t\t\t\t\t\t\t\t\twant =\t %v", targetId, got, tt.want)
+				"\n\t\t\t\t\t\t\t\t\t\t\t\twant =\t %v", targetId, got, tt.want)
 		}
 	})
 }
@@ -228,7 +284,13 @@ func innerTestCalculateMinSeMeanAccordingToRow(t *testing.T, targetId int) {
 	})
 }
 
-func almostEqualsSheet(a ObjectModule.CalculationDataSheet, b ObjectModule.CalculationDataSheet) bool {
+func almostEqualsOutputSheet(a ObjectModule.OutputDataSheet, b ObjectModule.OutputDataSheet) bool {
+	return reflect.DeepEqual(a.ColumnTitles, b.ColumnTitles) &&
+		reflect.DeepEqual(a.RowTitles, b.RowTitles) &&
+		almostEqualsMatrix(a.Data, b.Data)
+}
+
+func almostEqualsCalculationSheet(a ObjectModule.CalculationDataSheet, b ObjectModule.CalculationDataSheet) bool {
 	return a.CurrentDividingTarget == b.CurrentDividingTarget &&
 		almostEqualsArray(a.Mean, b.Mean) &&
 		almostEqualsArray(a.Se, b.Se) &&
@@ -245,10 +307,11 @@ func almostEqualsMatrix(a [][]float64, b [][]float64) bool {
 		return false
 	}
 
+	equals := true
 	for i, _ := range a {
-		almostEqualsArray(a[i], b[i])
+		equals = equals && almostEqualsArray(a[i], b[i])
 	}
-	return true
+	return equals
 }
 
 func almostEqualsArray(a []float64, b []float64) bool {
@@ -339,7 +402,7 @@ func getMeanMatrix(rowNum int) []float64 {
 func getDividingResultMatrix(rowNum int) [][]float64 {
 	return [][][]float64{
 		{
-			{},
+			{0.0, 0.0, 0.0, 0.0, 0.0},
 			{0.1, 0.078431373, 0.25, 0.117647059, 0.074074074},
 			{2.86, 3.117647059, 5.5, 3.941176471, 3.055555556},
 			{8.34, 9.333333333, 15.375, 14.64705882, 7.981481481},
@@ -352,7 +415,7 @@ func getDividingResultMatrix(rowNum int) [][]float64 {
 		},
 		{
 			{10, 12.75, 4, 8.5, 13.5},
-			{0.0, 0.0, 0.0, 0.0},
+			{0.0, 0.0, 0.0, 0.0, 0.0},
 			{28.6, 39.75, 22, 33.5, 41.25},
 			{83.4, 119, 61.5, 124.5, 107.75},
 			{22, 31, 24.5, 41.5, 50.25},

@@ -23,7 +23,30 @@ func Calculate(inputDataSheet ObjectModule.InputDataSheet) int {
 }
 
 func Adjust(inputDataSheet *ObjectModule.InputDataSheet, baseGeneIndex int) *ObjectModule.OutputDataSheet {
-	return nil
+	targetRow := inputDataSheet.Data[baseGeneIndex]
+	baseNumber := targetRow[0]
+	var adjustingFactors []float64
+	for _, val := range targetRow {
+		adjustingFactors = append(adjustingFactors, val/baseNumber)
+	}
+	var adjustedDataMatrix [][]float64
+
+	for _, rowData := range inputDataSheet.Data {
+		//for each gene:
+		var adjustedGene []float64
+		for i := 0; i < len(rowData); i++ {
+			adjustedGene = append(adjustedGene, rowData[i]*adjustingFactors[i])
+		}
+		adjustedDataMatrix = append(adjustedDataMatrix, adjustedGene)
+		fmt.Printf("adjusted data matrix: %v\n", adjustedGene)
+	}
+
+	return &ObjectModule.OutputDataSheet{
+		RowTitles:    inputDataSheet.RowTitles,
+		ColumnTitles: inputDataSheet.DataColumnTitles,
+		Data:         adjustedDataMatrix,
+	}
+
 }
 
 //Given a data matrix and a row number, this method will:
@@ -53,15 +76,17 @@ func divideAccordingToRow(sheet [][]float64, targetIdx int) [][]float64 {
 	base := sheet[targetIdx]
 
 	for idx, row := range sheet {
-		if idx == targetIdx {
-			result = append(result, []float64{})
-			continue
-		}
 
 		var currentResult []float64
+
 		for j, d := range row {
-			currentResult = append(currentResult, d/base[j])
+			newVal := 0.0
+			if idx != targetIdx {
+				newVal = d / base[j]
+			}
+			currentResult = append(currentResult, newVal)
 		}
+
 		result = append(result, currentResult)
 	}
 
