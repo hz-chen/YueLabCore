@@ -15,8 +15,8 @@ import (
 const GENE_NAME_TITLE = "gene"
 const LIBID_NAME_TITLE = "LibId"
 
-func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet) {
-	file, err := os.Create("result.csv")
+func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet, fileName string) {
+	file, err := os.Create(fileName)
 	checkError("Cannot create file", err)
 	defer file.Close()
 
@@ -32,10 +32,8 @@ func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet) {
 
 func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 	csvFile, err := os.Open(path)
-	if err != nil {
-		log.Fatalln("Couldn't open the csv file", err)
-	}
 
+	checkError("Failure to open input file "+path, err)
 	// Parse the file
 	r := csv.NewReader(csvFile)
 
@@ -47,25 +45,15 @@ func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 
 	// read & process first line
 	titleLine, err := r.Read()
-	if err == io.EOF {
-		log.Print("reached EOF when processing first line, input seems to be empty file.")
-		return nil
-	}
 
-	if err != nil {
-		log.Fatal(err)
-		return nil
-	}
+	checkError("Failure to read input file "+path, err)
 
 	geneTitleIdx := -1
 
 	fmt.Printf("processing first line as title: %s\n", titleLine)
 	if isTitleLine(titleLine) {
 		dataSheet.DataColumnTitles, geneTitleIdx, _, err = processTitleRow(titleLine)
-		if err != nil {
-			log.Fatal(err)
-			return nil
-		}
+		checkError("Failure to process title line ", err)
 	}
 
 	if geneTitleIdx == -1 {
@@ -80,11 +68,9 @@ func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 		if err == io.EOF {
 			break
 		}
-		if err != nil {
-			log.Fatal(err)
-		}
+		checkError("Failure to process data line "+strings.Join(eachLine, ","), err)
 
-		fmt.Printf("processing data line: %v\n", eachLine)
+		log.Printf("processing data line: %v\n", eachLine)
 
 		// read row title
 		dataSheet.RowTitles = append(dataSheet.RowTitles, ObjectModule.RowTitle{

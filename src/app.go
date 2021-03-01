@@ -12,5 +12,5 @@ func main() {
 	inputDataSheet := DataAccess.ReadFromCsv("data/testcase1/input.csv")
 	baseGeneIndex := BusinessLogic.Calculate(*inputDataSheet)
 	outputDataSheet := BusinessLogic.Adjust(inputDataSheet, baseGeneIndex)
-	DataAccess.WriteToCsv(outputDataSheet)
+	DataAccess.WriteToCsv(outputDataSheet, "result.csv")
 }

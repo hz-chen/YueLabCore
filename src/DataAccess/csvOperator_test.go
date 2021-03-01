@@ -2,6 +2,7 @@ package DataAccess
 
 import (
 	"YusLabCore/src/ObjectModule"
+	"YusLabCore/src/TestUtils"
 	"errors"
 	"reflect"
 	"strings"
@@ -178,26 +179,59 @@ func Test_readFromCsv(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ReadFromCsv(tt.args.path); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("readFromCsv() \t= %v, \n" +
+				t.Errorf("readFromCsv() \t= %v, \n"+
 					"\t\t\t\t\t\t\twant \t= %v", got, tt.want)
 			}
 		})
 	}
 }
 
-
 func Test_writeToCsv(t *testing.T) {
 	type args struct {
 		outputDataSheet *ObjectModule.OutputDataSheet
+		outputFileName  string
 	}
 	tests := []struct {
 		name string
 		args args
 	}{
-		// TODO: Add test cases.
+		{
+			name: "comparing output file",
+			args: args{
+				outputDataSheet: &ObjectModule.OutputDataSheet{
+					ColumnTitles: []string{"0um-16H", "1um-16H", "2um-16H", "4um-16H", "8um-16H"},
+					RowTitles: []ObjectModule.RowTitle{
+						{GeneName: "SPBC4F6.10"}, {GeneName: "SPBC4F6.11c"}, {GeneName: "SPBC18A7.01"},
+						{GeneName: "SPBC530.04"}, {GeneName: "SPBC557.05"}, {GeneName: "SPBC365.20c"},
+						{GeneName: "SPBC56F2.10c"}, {GeneName: "SPBC577.11"}, {GeneName: "SPBC577.14c"},
+						{GeneName: "SPBC106.20"},
+					},
+					Data: [][]float64{ // from Haijie's hand calculation
+						{50, 45.98923284, 23.6123348, 32.82420749, 47.73087071},
+						{5, 3.606998654, 5.9030837, 3.86167147, 3.535620053},
+						{143, 143.3781965, 129.8678414, 129.3659942, 145.8443272},
+						{417, 429.2328398, 363.0396476, 480.778098, 380.9630607},
+						{110, 111.8169583, 144.6255507, 160.259366, 177.6649077},
+						{249, 407.5908479, 239.0748899, 274.1786744, 274.0105541},
+						{265, 229.0444145, 185.9471366, 310.8645533, 285.5013193},
+						{557, 500.4710633, 581.4537445, 546.426513, 477.3087071},
+						{1795, 1385.989233, 1407.885463, 1251.181556, 1310.831135},
+						{670, 670, 670, 670, 670},
+					},
+				},
+				outputFileName: "/tmp/3398ad58-7a44-11eb-ba44-367dda9c6a1b.csv",
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			WriteToCsv(tt.args.outputDataSheet, tt.args.outputFileName)
+			want := ReadFromCsv("../../data/testcase1/output.csv")
+			got := ReadFromCsv(tt.args.outputFileName)
+			if !TestUtils.AlmostEqualsInputSheet(*want, *got) {
+				t.Errorf("WriteToCsv() \t= %v, \n"+
+					"\t\t\t\t\t\t\twant \t= %v", *got, *want)
+			}
 		})
 	}
 }
