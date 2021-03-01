@@ -16,7 +16,18 @@ const GENE_NAME_TITLE = "gene"
 const LIBID_NAME_TITLE = "LibId"
 
 func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet) {
+	file, err := os.Create("result.csv")
+	checkError("Cannot create file", err)
+	defer file.Close()
 
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	for _, value := range outputDataSheet.ToPrintableFormat() {
+		fmt.Printf("printing line %v\n", value)
+		err := writer.Write(value)
+		checkError("Cannot write to file", err)
+	}
 }
 
 func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
@@ -133,4 +144,10 @@ func getIndex(s []string, e string) int {
 		}
 	}
 	return -1
+}
+
+func checkError(message string, err error) {
+	if err != nil {
+		log.Fatal(message, err)
+	}
 }

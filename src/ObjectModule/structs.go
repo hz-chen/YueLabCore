@@ -1,5 +1,9 @@
 package ObjectModule
 
+import (
+	"fmt"
+)
+
 // Each input will be represented in an InputDataSheet
 // For an input sheet:
 //  RowTitle.LibId 		| RowTitle.GeneName		| DataColumnTitles[0] 	| DataColumnTitles[1] 	| ...
@@ -54,8 +58,26 @@ type OutputDataSheet struct {
 	// data matrix, [0][0] indicates the first data cell, excluding headers columns
 	Data [][]float64
 
-	// Gene A in the immutable pair
-	immutableGeneA RowTitle
-	// Gene A in the immutable pair
-	immutableGeneB RowTitle
+	// base gene used for calculation
+	baseGene RowTitle
+}
+
+func (o OutputDataSheet) ToPrintableFormat() [][]string {
+	var output [][]string
+	var titleRow []string
+
+	titleRow = append(titleRow, "gene")
+	titleRow = append(titleRow, o.ColumnTitles...)
+	output = append(output, titleRow)
+
+	for i := 0; i < len(o.Data); i++ {
+		var eachRow []string
+		eachRow = append(eachRow, o.RowTitles[i].GeneName)
+		for _, val := range o.Data[i] {
+			eachRow = append(eachRow, fmt.Sprintf("%f", val))
+		}
+		output = append(output, eachRow)
+	}
+
+	return output
 }

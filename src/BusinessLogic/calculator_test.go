@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const float64EqualityThreshold = 1e-6 // this value can't be too high, as the excel calculation has different precision.
+const float64EqualityThreshold = 1e-6 // this value can't be too precise, as the excel calculation has different precision.
 
 func TestCalculate(t *testing.T) {
 	type args struct {
