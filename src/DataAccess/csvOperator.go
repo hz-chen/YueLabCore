@@ -13,9 +13,8 @@ import (
 )
 
 const GENE_NAME_TITLE = "gene"
-const LIBID_NAME_TITLE = "LibId"
 
-func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet, fileName string) {
+func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet, fileName string, appendBenchmarkGene bool) {
 	file, err := os.Create(fileName)
 	checkError("Cannot create file", err)
 	defer file.Close()
@@ -28,6 +27,15 @@ func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet, fileName string) 
 		err := writer.Write(value)
 		checkError("Cannot write to file", err)
 	}
+
+	//write base gene name and index
+	if appendBenchmarkGene {
+		// Our index start with 0. In the output, excel rows start at 1, and the first row is the title row.
+		// Therefore the exact row number should be index + 2
+		err = writer.Write([]string{"BaseGene", outputDataSheet.BaseGeneA.GeneName, fmt.Sprintf("%v", outputDataSheet.BaseGeneA.Index + 2)})
+		checkError("Failed to write base gene to file", err)
+	}
+
 }
 
 func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
@@ -48,19 +56,15 @@ func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 
 	checkError("Failure to read input file "+path, err)
 
-	geneTitleIdx := -1
+	geneTitleIdx := 0
 
 	fmt.Printf("processing first line as title: %s\n", titleLine)
 	if isTitleLine(titleLine) {
-		dataSheet.DataColumnTitles, geneTitleIdx, _, err = processTitleRow(titleLine)
+		dataSheet.DataColumnTitles, err = processTitleRow(titleLine)
 		checkError("Failure to process title line ", err)
 	}
 
-	if geneTitleIdx == -1 {
-		log.Fatal("no gene found in title index, unsupported file format!")
-		return nil
-	}
-
+	recordIdx := 0
 	// Iterate through the records
 	for {
 		// Read each eachLine from csv
@@ -75,9 +79,10 @@ func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 		// read row title
 		dataSheet.RowTitles = append(dataSheet.RowTitles, ObjectModule.RowTitle{
 			GeneName: eachLine[geneTitleIdx],
+			Index:    recordIdx,
 		})
-
-		fmt.Printf("updated row title %v\n", dataSheet.RowTitles)
+		recordIdx++
+		//fmt.Printf("updated row title %v\n", dataSheet.RowTitles)
 
 		// read data cells
 		var currentDataRow []float64
@@ -97,39 +102,17 @@ func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 }
 
 func isTitleLine(line []string) bool {
-	return strings.Contains(line[0], GENE_NAME_TITLE) || strings.Contains(line[0], LIBID_NAME_TITLE)
+	return strings.Contains(line[0], GENE_NAME_TITLE)
 }
 
-// first return value is the processed column titles for data columns only;
-// second return value is the index of gene title index
-// third return value is the index of the libId title index
-func processTitleRow(line []string) ([]string, int, int, error) {
+//always assume line[0] contains "gene"
+func processTitleRow(line []string) ([]string, error) {
 
-	geneTitleIdx := getIndex(line, GENE_NAME_TITLE)
-	libIdIdx := getIndex(line, LIBID_NAME_TITLE)
-
-	hasGeneTitle := geneTitleIdx != -1
-	hasLibIdTitle := libIdIdx != -1
-
-	var dataColumnStartingIdx = 0
-	if hasGeneTitle && hasLibIdTitle {
-		dataColumnStartingIdx = 2
-	} else if hasGeneTitle || hasLibIdTitle {
-		dataColumnStartingIdx = 1
-	} else {
-		return nil, -1, -1, errors.New("input file must have at least one title column")
+	if !isTitleLine(line) {
+		return nil, errors.New("input file must have at least one title column")
 	}
 
-	return line[dataColumnStartingIdx:], geneTitleIdx, libIdIdx, nil
-}
-
-func getIndex(s []string, e string) int {
-	for idx, a := range s {
-		if strings.Contains(a, e) {
-			return idx
-		}
-	}
-	return -1
+	return line[1:], nil
 }
 
 func checkError(message string, err error) {

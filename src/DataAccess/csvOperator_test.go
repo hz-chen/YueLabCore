@@ -26,25 +26,25 @@ func Test_isTitleLine(t *testing.T) {
 			expectedResult: true,
 		},
 		{
+			name: "has gene_name",
+			args: args{
+				line: strings.Split("gene_name 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
+			},
+			expectedResult: true,
+		},
+		{
 			name: "has LibId",
 			args: args{
 				line: strings.Split("LibId 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
 			},
-			expectedResult: true,
+			expectedResult: false,
 		},
 		{
-			name: "has both",
+			name: "gene not first column",
 			args: args{
 				line: strings.Split("LibId gene 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
 			},
-			expectedResult: true,
-		},
-		{
-			name: "has both reversed",
-			args: args{
-				line: strings.Split("gene LibId 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
-			},
-			expectedResult: true,
+			expectedResult: false,
 		},
 		{
 			name: "has none",
@@ -77,62 +77,35 @@ func Test_processTitleRole(t *testing.T) {
 		expectedError         error
 	}{
 		{
-			name: "with gene name only",
+			name: "with gene name",
 			args: args{
 				line: strings.Split("gene 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
 			},
-			expectedTitleString:   strings.Split("0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
-			expectedGeneTitleIdx:  0,
-			expectedLibIdTitleIdx: -1,
+			expectedTitleString: strings.Split("0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
 		}, {
-			name: "with libid only",
+			name: "with gene_name",
 			args: args{
-				line: strings.Split("LibId 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
+				line: strings.Split("gene_name 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
 			},
-			expectedTitleString:   strings.Split("0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
-			expectedGeneTitleIdx:  -1,
-			expectedLibIdTitleIdx: 0,
-		},
-		{
-			name: "with geneName and LibId",
-			args: args{
-				line: strings.Split("gene LibId 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
-			},
-			expectedTitleString:   strings.Split("0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
-			expectedGeneTitleIdx:  0,
-			expectedLibIdTitleIdx: 1,
-		},
-		{
-			name: "with LibId and geneName",
-			args: args{
-				line: strings.Split("LibId gene 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
-			},
-			expectedTitleString:   strings.Split("0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
-			expectedGeneTitleIdx:  1,
-			expectedLibIdTitleIdx: 0,
+			expectedTitleString: strings.Split("0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
 		},
 		{
 			name: "with other titles",
 			args: args{
 				line: strings.Split("randomTitle 0um-16H 1um-16H 2um-16H 4um-16H 8um-16H", " "),
 			},
-			expectedTitleString:   nil,
-			expectedGeneTitleIdx:  -1,
-			expectedLibIdTitleIdx: -1,
-			expectedError:         errors.New("input file must have at least one title column"),
+			expectedError: errors.New("input file must have at least one title column"),
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if actualTitleString, actualGeneIdx, actualLibIdIdx, err := processTitleRow(tt.args.line);
+			if actualTitleString, err := processTitleRow(tt.args.line);
 				!reflect.DeepEqual(actualTitleString, tt.expectedTitleString) ||
-					!reflect.DeepEqual(actualGeneIdx, tt.expectedGeneTitleIdx) ||
-					!reflect.DeepEqual(actualLibIdIdx, tt.expectedLibIdTitleIdx) ||
 					!reflect.DeepEqual(err, tt.expectedError) {
-				t.Errorf("processTitleRow() = \t%v, %v, %v, %v,\n \t\t\t\t\t\t\t\twanted = \t%v, %v, %v, %v",
-					actualTitleString, actualGeneIdx, actualLibIdIdx, err,
-					tt.expectedTitleString, tt.expectedGeneTitleIdx, tt.expectedLibIdTitleIdx, tt.expectedError)
+				t.Errorf("processTitleRow() = \t%v, %v,\n \t\t\t\t\t\t\t\twanted = \t%v, %v",
+					actualTitleString, err,
+					tt.expectedTitleString, tt.expectedError)
 			}
 		})
 	}
@@ -155,10 +128,16 @@ func Test_readFromCsv(t *testing.T) {
 			want: &ObjectModule.InputDataSheet{
 				DataColumnTitles: []string{"0um-16H", "1um-16H", "2um-16H", "4um-16H", "8um-16H"},
 				RowTitles: []ObjectModule.RowTitle{
-					{GeneName: "SPBC4F6.10"}, {GeneName: "SPBC4F6.11c"}, {GeneName: "SPBC18A7.01"},
-					{GeneName: "SPBC530.04"}, {GeneName: "SPBC557.05"}, {GeneName: "SPBC365.20c"},
-					{GeneName: "SPBC56F2.10c"}, {GeneName: "SPBC577.11"}, {GeneName: "SPBC577.14c"},
-					{GeneName: "SPBC106.20"},
+					{GeneName: "SPBC4F6.10", Index: 0},
+					{GeneName: "SPBC4F6.11c", Index: 1},
+					{GeneName: "SPBC18A7.01", Index: 2},
+					{GeneName: "SPBC530.04", Index: 3},
+					{GeneName: "SPBC557.05", Index: 4},
+					{GeneName: "SPBC365.20c", Index: 5},
+					{GeneName: "SPBC56F2.10c", Index: 6},
+					{GeneName: "SPBC577.11", Index: 7},
+					{GeneName: "SPBC577.14c", Index: 8},
+					{GeneName: "SPBC106.20", Index: 9},
 				},
 				Data: [][]float64{
 					{50, 51, 8, 17, 54},
@@ -225,7 +204,7 @@ func Test_writeToCsv(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			WriteToCsv(tt.args.outputDataSheet, tt.args.outputFileName)
+			WriteToCsv(tt.args.outputDataSheet, tt.args.outputFileName, false)
 			want := ReadFromCsv("../../data/testcase1/output.csv")
 			got := ReadFromCsv(tt.args.outputFileName)
 			if !TestUtils.AlmostEqualsInputSheet(*want, *got) {

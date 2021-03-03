@@ -6,7 +6,7 @@ import (
 	"math"
 )
 
-func Calculate(inputDataSheet ObjectModule.InputDataSheet) int {
+func Calculate(inputDataSheet ObjectModule.InputDataSheet) ObjectModule.RowTitle {
 
 	globalMinSeMean := math.MaxFloat64
 	targetWithMinSeMean := -1
@@ -19,7 +19,7 @@ func Calculate(inputDataSheet ObjectModule.InputDataSheet) int {
 		}
 	}
 
-	return targetWithMinSeMean
+	return inputDataSheet.RowTitles[targetWithMinSeMean]
 }
 
 func Adjust(inputDataSheet *ObjectModule.InputDataSheet, baseGeneIndex int) *ObjectModule.OutputDataSheet {
@@ -27,9 +27,9 @@ func Adjust(inputDataSheet *ObjectModule.InputDataSheet, baseGeneIndex int) *Obj
 	baseNumber := targetRow[0]
 	var adjustingFactors []float64
 	for _, val := range targetRow {
-		adjustingFactors = append(adjustingFactors, baseNumber / val)
+		adjustingFactors = append(adjustingFactors, baseNumber/val)
 	}
-	fmt.Printf("adjusting factors: %v\n", adjustingFactors)
+	//fmt.Printf("adjusting factors: %v\n", adjustingFactors)
 
 	var adjustedDataMatrix [][]float64
 
@@ -40,13 +40,17 @@ func Adjust(inputDataSheet *ObjectModule.InputDataSheet, baseGeneIndex int) *Obj
 			adjustedGene = append(adjustedGene, rowData[i]*adjustingFactors[i])
 		}
 		adjustedDataMatrix = append(adjustedDataMatrix, adjustedGene)
-		fmt.Printf("adjusted data matrix: %v\n", adjustedGene)
+		//fmt.Printf("adjusted data matrix: %v\n", adjustedGene)
 	}
 
 	return &ObjectModule.OutputDataSheet{
 		RowTitles:    inputDataSheet.RowTitles,
 		ColumnTitles: inputDataSheet.DataColumnTitles,
 		Data:         adjustedDataMatrix,
+		BaseGeneA: ObjectModule.RowTitle{
+			Index:    baseGeneIndex,
+			GeneName: "",
+		},
 	}
 
 }

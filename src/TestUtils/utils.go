@@ -17,7 +17,8 @@ func AlmostEqualsInputSheet(a ObjectModule.InputDataSheet, b ObjectModule.InputD
 func AlmostEqualsOutputSheet(a ObjectModule.OutputDataSheet, b ObjectModule.OutputDataSheet) bool {
 	return reflect.DeepEqual(a.ColumnTitles, b.ColumnTitles) &&
 		reflect.DeepEqual(a.RowTitles, b.RowTitles) &&
-		AlmostEqualsMatrix(a.Data, b.Data)
+		AlmostEqualsMatrix(a.Data, b.Data) &&
+		reflect.DeepEqual(a.BaseGeneA, b.BaseGeneA)
 }
 
 func AlmostEqualsCalculationSheet(a ObjectModule.CalculationDataSheet, b ObjectModule.CalculationDataSheet) bool {

@@ -34,7 +34,7 @@ func TestCalculate(t *testing.T) {
 	}
 
 	t.Run(tt.name, func(t *testing.T) {
-		if got := Calculate(tt.args.inputDataSheet); got != tt.want {
+		if got := Calculate(tt.args.inputDataSheet); got.Index != tt.want{
 			t.Errorf("Calculate() = %v, want %v", got, tt.want)
 		}
 	})

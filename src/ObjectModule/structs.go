@@ -22,8 +22,8 @@ type InputDataSheet struct {
 
 // including all possible titles of a sheet. Now only support LibId and GeneName
 type RowTitle struct {
-	// Lib id. For example, 10-A01
-	LibId string
+	// index
+	Index int
 	// Gene name. For example, SPBC4F6.10
 	GeneName string
 }
@@ -59,7 +59,7 @@ type OutputDataSheet struct {
 	Data [][]float64
 
 	// base gene used for calculation
-	baseGene RowTitle
+	BaseGeneA RowTitle
 }
 
 func (o OutputDataSheet) ToPrintableFormat() [][]string {
