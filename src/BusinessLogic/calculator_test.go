@@ -7,6 +7,21 @@ import (
 	"testing"
 )
 
+func BenchmarkCalculate(b *testing.B) {
+	input := ObjectModule.InputDataSheet{
+		DataColumnTitles: []string{"0um-16H", "1um-16H", "2um-16H", "4um-16H", "8um-16H"},
+		RowTitles: []ObjectModule.RowTitle{
+			{GeneName: "SPBC4F6.10"}, {GeneName: "SPBC4F6.11c"}, {GeneName: "SPBC18A7.01"},
+			{GeneName: "SPBC530.04"}, {GeneName: "SPBC557.05"}, {GeneName: "SPBC365.20c"},
+			{GeneName: "SPBC56F2.10c"}, {GeneName: "SPBC577.11"}, {GeneName: "SPBC577.14c"},
+			{GeneName: "SPBC106.20"},
+		},
+		Data: TestUtils.GetInputMatrix(),
+	}
+	for i := 0; i < b.N; i++ {
+		_ = Calculate(input)
+	}
+}
 
 func TestCalculate(t *testing.T) {
 	type args struct {
@@ -34,7 +49,7 @@ func TestCalculate(t *testing.T) {
 	}
 
 	t.Run(tt.name, func(t *testing.T) {
-		if got := Calculate(tt.args.inputDataSheet); got.Index != tt.want{
+		if got := Calculate(tt.args.inputDataSheet); got.Index != tt.want {
 			t.Errorf("Calculate() = %v, want %v", got, tt.want)
 		}
 	})
@@ -90,10 +105,17 @@ func TestAdjust(t *testing.T) {
 
 	t.Run(tt.name, func(t *testing.T) {
 		if got := Adjust(&tt.args.inputDataSheet, tt.args.baseGeneIndex); !TestUtils.AlmostEqualsOutputSheet(*got, tt.want) {
-			t.Errorf("Adjust() \t= %v, \n" +
+			t.Errorf("Adjust() \t= %v, \n"+
 				"\t\t\t\t\t\twant\t= %v", *got, tt.want)
 		}
 	})
+}
+
+func BenchmarkCalculateSeAndMean(b *testing.B) {
+	input := TestUtils.GetDividingResultMatrix(0)[0]
+	for i := 0; i < b.N; i++ {
+		_, _ = calculateSeAndMean(input)
+	}
 }
 
 func TestCalculateSeAndMean(t *testing.T) {
@@ -130,6 +152,19 @@ func innerTestCalculateSeAndMean(t *testing.T, matrix int, row int) {
 		}
 	})
 
+}
+
+func BenchmarkFillInSeArrayAndMeanArray(b *testing.B) {
+	input := ObjectModule.CalculationDataSheet{
+		CurrentDividingTarget: 0,
+		Data:                  TestUtils.GetDividingResultMatrix(0),
+		Se:                    nil,
+		Mean:                  nil,
+		SeMean:                nil,
+	}
+	for i := 0; i < b.N; i++ {
+		_ = fillInSeArrayAndMeanArray(input)
+	}
 }
 
 func TestFillInSeArrayAndMeanArray(t *testing.T) {
@@ -175,6 +210,20 @@ func innerTestFillInSeArrayAndMeanArrayForMatrix(t *testing.T, matrix int) {
 
 }
 
+func BenchmarkFillInSeMeanArray(b *testing.B) {
+	input := ObjectModule.CalculationDataSheet{
+		CurrentDividingTarget: 0,
+		Data:                  TestUtils.GetDividingResultMatrix(0),
+		Se:                    TestUtils.GetSeMatrix(0),
+		Mean:                  TestUtils.GetMeanMatrix(0),
+		SeMean:                nil,
+	}
+
+	for i := 0; i < b.N; i++ {
+		_ = fillInSeMeanArray(input)
+	}
+}
+
 func TestFillInSeMeanArray(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		innerTestFillInSeMeanArray(t, i)
@@ -218,6 +267,13 @@ func innerTestFillInSeMeanArray(t *testing.T, target int) {
 
 }
 
+func BenchmarkDivideAccordingToRow(b *testing.B) {
+	input := TestUtils.GetInputMatrix()
+	for i := 0; i < b.N; i++ {
+		_ = divideAccordingToRow(input, 0)
+	}
+}
+
 func TestDivideAccordingToRow(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		innerTestDivideAccordingToRow(t, i)
@@ -248,6 +304,13 @@ func innerTestDivideAccordingToRow(t *testing.T, targetId int) {
 				"\n\t\t\t\t\t\t\t\t\t\t\t\twant =\t %v", targetId, got, tt.want)
 		}
 	})
+}
+
+func BenchmarkCalculateMinSeMeanAccordingToRow(b *testing.B) {
+	input := TestUtils.GetInputMatrix()
+	for i := 0; i < b.N; i++ {
+		_ = calculateMinSeMeanAccordingToRow(input, 0)
+	}
 }
 
 func TestCalculateMinSeMeanAccordingToRow(t *testing.T) {

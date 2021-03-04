@@ -23,7 +23,7 @@ func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet, fileName string, 
 	defer writer.Flush()
 
 	for _, value := range outputDataSheet.ToPrintableFormat() {
-		fmt.Printf("printing line %v\n", value)
+		//fmt.Printf("printing line %v\n", value)
 		err := writer.Write(value)
 		checkError("Cannot write to file", err)
 	}
@@ -58,7 +58,7 @@ func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 
 	geneTitleIdx := 0
 
-	fmt.Printf("processing first line as title: %s\n", titleLine)
+	//fmt.Printf("processing first line as title: %s\n", titleLine)
 	if isTitleLine(titleLine) {
 		dataSheet.DataColumnTitles, err = processTitleRow(titleLine)
 		checkError("Failure to process title line ", err)
@@ -74,7 +74,7 @@ func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 		}
 		checkError("Failure to process data line "+strings.Join(eachLine, ","), err)
 
-		log.Printf("processing data line: %v\n", eachLine)
+		//log.Printf("processing data line: %v\n", eachLine)
 
 		// read row title
 		dataSheet.RowTitles = append(dataSheet.RowTitles, ObjectModule.RowTitle{

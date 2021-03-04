@@ -2,7 +2,6 @@ package BusinessLogic
 
 import (
 	"YusLabCore/src/ObjectModule"
-	"fmt"
 	"math"
 )
 
@@ -15,7 +14,7 @@ func Calculate(inputDataSheet ObjectModule.InputDataSheet) ObjectModule.RowTitle
 		if currentResult < globalMinSeMean {
 			globalMinSeMean = currentResult
 			targetWithMinSeMean = index
-			fmt.Printf("new target [%v] found with min SeMean [%v]\n", index, currentResult)
+			// fmt.Printf("new target [%v] found with min SeMean [%v]\n", index, currentResult)
 		}
 	}
 
