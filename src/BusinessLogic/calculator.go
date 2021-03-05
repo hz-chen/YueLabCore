@@ -3,20 +3,31 @@ package BusinessLogic
 import (
 	"YusLabCore/src/ObjectModule"
 	"math"
+	"sync"
 )
 
 func Calculate(inputDataSheet ObjectModule.InputDataSheet) ObjectModule.RowTitle {
 
 	globalMinSeMean := math.MaxFloat64
 	targetWithMinSeMean := -1
+	var wg sync.WaitGroup
+
 	for index, _ := range inputDataSheet.Data {
-		currentResult := calculateMinSeMeanAccordingToRow(inputDataSheet.Data, index)
-		if currentResult < globalMinSeMean {
-			globalMinSeMean = currentResult
-			targetWithMinSeMean = index
-			// fmt.Printf("new target [%v] found with min SeMean [%v]\n", index, currentResult)
-		}
+		var currentResult float64
+		index := index
+		wg.Add(1)
+		go func() {
+			currentResult = calculateMinSeMeanAccordingToRow(inputDataSheet.Data, index)
+			if currentResult < globalMinSeMean {
+				globalMinSeMean = currentResult
+				targetWithMinSeMean = index
+				// fmt.Printf("new target [%v] found with min SeMean [%v]\n", index, currentResult)
+			}
+			wg.Done()
+		}()
+
 	}
+	wg.Wait()
 
 	return inputDataSheet.RowTitles[targetWithMinSeMean]
 }
@@ -46,10 +57,7 @@ func Adjust(inputDataSheet *ObjectModule.InputDataSheet, baseGeneIndex int) *Obj
 		RowTitles:    inputDataSheet.RowTitles,
 		ColumnTitles: inputDataSheet.DataColumnTitles,
 		Data:         adjustedDataMatrix,
-		BaseGeneA: ObjectModule.RowTitle{
-			Index:    baseGeneIndex,
-			GeneName: "",
-		},
+		BaseGeneA:    inputDataSheet.RowTitles[baseGeneIndex],
 	}
 
 }
