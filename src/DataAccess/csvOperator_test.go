@@ -9,6 +9,9 @@ import (
 	"testing"
 )
 
+const InputPath = "../../data/testcase1/input.csv"
+const OutputPath = "../../data/testcase1/output.csv"
+
 func Test_isTitleLine(t *testing.T) {
 	type args struct {
 		line []string
@@ -115,6 +118,7 @@ func Test_readFromCsv(t *testing.T) {
 	type args struct {
 		path string
 	}
+
 	tests := []struct {
 		name string
 		args args
@@ -123,7 +127,7 @@ func Test_readFromCsv(t *testing.T) {
 		{
 			name: "test parse title with gene name only",
 			args: args{
-				path: "../../data/testcase1/input.csv",
+				path: InputPath,
 			},
 			want: &ObjectModule.InputDataSheet{
 				DataColumnTitles: []string{"0um-16H", "1um-16H", "2um-16H", "4um-16H", "8um-16H"},
@@ -212,5 +216,81 @@ func Test_writeToCsv(t *testing.T) {
 					"\t\t\t\t\t\t\twant \t= %v", *got, *want)
 			}
 		})
+	}
+}
+
+func BenchmarkReadFromCsv(b *testing.B) {
+	for i := 0; i < b.N; i++ {
+		_ = ReadFromCsv(InputPath)
+	}
+}
+
+func BenchmarkWriteToCsv(b *testing.B) {
+	outputDataSheet := ObjectModule.OutputDataSheet{
+		ColumnTitles: []string{"0um-16H", "1um-16H", "2um-16H", "4um-16H", "8um-16H"},
+		RowTitles: []ObjectModule.RowTitle{
+			{GeneName: "SPBC4F6.10", Index: 0},
+			{GeneName: "SPBC4F6.11c", Index: 1},
+			{GeneName: "SPBC18A7.01", Index: 2},
+			{GeneName: "SPBC530.04", Index: 3},
+			{GeneName: "SPBC557.05", Index: 4},
+			{GeneName: "SPBC365.20c", Index: 5},
+			{GeneName: "SPBC56F2.10c", Index: 6},
+			{GeneName: "SPBC577.11", Index: 7},
+			{GeneName: "SPBC577.14c", Index: 8},
+			{GeneName: "SPBC106.20", Index: 9},
+		},
+		Data: [][]float64{ // from Haijie's hand calculation
+			{50, 45.98923284, 23.6123348, 32.82420749, 47.73087071},
+			{5, 3.606998654, 5.9030837, 3.86167147, 3.535620053},
+			{143, 143.3781965, 129.8678414, 129.3659942, 145.8443272},
+			{417, 429.2328398, 363.0396476, 480.778098, 380.9630607},
+			{110, 111.8169583, 144.6255507, 160.259366, 177.6649077},
+			{249, 407.5908479, 239.0748899, 274.1786744, 274.0105541},
+			{265, 229.0444145, 185.9471366, 310.8645533, 285.5013193},
+			{557, 500.4710633, 581.4537445, 546.426513, 477.3087071},
+			{1795, 1385.989233, 1407.885463, 1251.181556, 1310.831135},
+			{670, 670, 670, 670, 670},
+		},
+		BaseGeneA: ObjectModule.RowTitle{GeneName: "SPBC106.20", Index: 9},
+	}
+
+	for i := 0; i < b.N; i++ {
+		WriteToCsv(&outputDataSheet, OutputPath, false)
+	}
+}
+
+func BenchmarkToPrintableFormat(b *testing.B) {
+	outputDataSheet := ObjectModule.OutputDataSheet{
+		ColumnTitles: []string{"0um-16H", "1um-16H", "2um-16H", "4um-16H", "8um-16H"},
+		RowTitles: []ObjectModule.RowTitle{
+			{GeneName: "SPBC4F6.10", Index: 0},
+			{GeneName: "SPBC4F6.11c", Index: 1},
+			{GeneName: "SPBC18A7.01", Index: 2},
+			{GeneName: "SPBC530.04", Index: 3},
+			{GeneName: "SPBC557.05", Index: 4},
+			{GeneName: "SPBC365.20c", Index: 5},
+			{GeneName: "SPBC56F2.10c", Index: 6},
+			{GeneName: "SPBC577.11", Index: 7},
+			{GeneName: "SPBC577.14c", Index: 8},
+			{GeneName: "SPBC106.20", Index: 9},
+		},
+		Data: [][]float64{ // from Haijie's hand calculation
+			{50, 45.98923284, 23.6123348, 32.82420749, 47.73087071},
+			{5, 3.606998654, 5.9030837, 3.86167147, 3.535620053},
+			{143, 143.3781965, 129.8678414, 129.3659942, 145.8443272},
+			{417, 429.2328398, 363.0396476, 480.778098, 380.9630607},
+			{110, 111.8169583, 144.6255507, 160.259366, 177.6649077},
+			{249, 407.5908479, 239.0748899, 274.1786744, 274.0105541},
+			{265, 229.0444145, 185.9471366, 310.8645533, 285.5013193},
+			{557, 500.4710633, 581.4537445, 546.426513, 477.3087071},
+			{1795, 1385.989233, 1407.885463, 1251.181556, 1310.831135},
+			{670, 670, 670, 670, 670},
+		},
+		BaseGeneA: ObjectModule.RowTitle{GeneName: "SPBC106.20", Index: 9},
+	}
+
+	for i := 0; i < b.N; i++ {
+		ToPrintableFormat(outputDataSheet)
 	}
 }

@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-const GENE_NAME_TITLE = "gene"
+const GeneNameTitle = "gene"
 
 func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet, fileName string, appendBenchmarkGene bool) {
 	file, err := os.Create(fileName)
@@ -22,7 +22,7 @@ func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet, fileName string, 
 	writer := csv.NewWriter(file)
 	defer writer.Flush()
 
-	for _, value := range outputDataSheet.ToPrintableFormat() {
+	for _, value := range ToPrintableFormat(*outputDataSheet) {
 		//fmt.Printf("printing line %v\n", value)
 		err := writer.Write(value)
 		checkError("Cannot write to file", err)
@@ -32,10 +32,31 @@ func WriteToCsv(outputDataSheet *ObjectModule.OutputDataSheet, fileName string, 
 	if appendBenchmarkGene {
 		// Our index start with 0. In the output, excel rows start at 1, and the first row is the title row.
 		// Therefore the exact row number should be index + 2
-		err = writer.Write([]string{"BaseGene", outputDataSheet.BaseGeneA.GeneName, fmt.Sprintf("%v", outputDataSheet.BaseGeneA.Index + 2)})
+		err = writer.Write([]string{"BaseGene", outputDataSheet.BaseGeneA.GeneName, fmt.Sprintf("%v", outputDataSheet.BaseGeneA.Index+2)})
 		checkError("Failed to write base gene to file", err)
 	}
 
+}
+
+func ToPrintableFormat(sheet ObjectModule.OutputDataSheet) [][]string {
+	var output [][]string
+	var titleRow []string
+
+	titleRow = append(titleRow, "gene")
+	titleRow = append(titleRow, sheet.ColumnTitles...)
+	output = append(output, titleRow)
+
+	for i := 0; i < len(sheet.Data); i++ {
+
+		var eachRow []string
+		eachRow = append(eachRow, sheet.RowTitles[i].GeneName)
+		for _, val := range sheet.Data[i] {
+			eachRow = append(eachRow, fmt.Sprintf("%f", val))
+		}
+		output = append(output, eachRow)
+	}
+
+	return output
 }
 
 func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
@@ -102,7 +123,7 @@ func ReadFromCsv(path string) *ObjectModule.InputDataSheet {
 }
 
 func isTitleLine(line []string) bool {
-	return strings.Contains(line[0], GENE_NAME_TITLE)
+	return strings.Contains(line[0], GeneNameTitle)
 }
 
 //always assume line[0] contains "gene"
